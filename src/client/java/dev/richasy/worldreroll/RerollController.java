@@ -5,7 +5,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Optional;
 import java.util.OptionalLong;
-import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screens.AlertScreen;
@@ -85,8 +84,7 @@ public final class RerollController {
                         registries.compositeAccess().allRegistriesLifecycle());
                 var settings = new LevelDataAndDimensions.WorldDataAndGenSettings(data,
                         new WorldGenSettings(options, context.selectedDimensions()));
-                String targetId = "reroll-" + UUID.randomUUID();
-                if (client.getLevelSource().levelExists(targetId)) throw new IOException("Replacement folder already exists");
+                String targetId = WorldFolder.reserve(client.getLevelSource().getBaseDir(), recreated.getFirst().levelName());
                 targetAccess = client.getLevelSource().validateAndCreateAccess(targetId);
                 pending.target = WorldIdentity.capture(client.getLevelSource().getBaseDir(), targetId);
                 copyDataPacks(sourceAccess.getLevelPath(LevelResource.DATAPACK_DIR),

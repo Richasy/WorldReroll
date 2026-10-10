@@ -6,8 +6,10 @@ Fabric API 0.161.0+26.3 and Java 25. The implementation worktree is
 bootstrap commit `70c427898b6502cc5b185760626108659de803a4`.
 
 - `gradlew.bat build runClientGameTest --no-daemon`: passed.
-- Five JUnit tests: passed; cancellation, duplicate preparation, loading gates,
+- Seven JUnit tests: passed; cancellation, duplicate preparation, loading gates,
   path traversal, active-world exclusion and replaced directory identity.
+  Readable directory reservation also covers collision preservation, Unicode,
+  invalid path characters, Windows device names and long-name shortening.
 - Native client scenario: passed using disposable saves in the test run directory.
   The pause-menu entry and confirmation were exercised, including cancellation
   and duplicate activation. Survival mode, locked hard difficulty, game rules,

@@ -12,6 +12,11 @@ The old world is saved and closed using Minecraft's normal shutdown. A fresh fol
 
 There is no entry on multiplayer servers or in a world open to LAN. There are no new dimensions, gameplay items, commands, automatic resets or Mixins. Lithergy is not a dependency.
 
+New save directories use readable names such as `HelloWorld-reroll-1`. Existing
+names are skipped by reserving a new directory exclusively and incrementing the
+number. Unsafe filename characters are replaced and very long names are shortened;
+the displayed world name remains unchanged. Existing save directories are not renamed.
+
 ## Failure behavior
 
 Creating or loading the replacement never authorizes deleting the source. Cancellation or creation failure keeps the old world. A client restart does not resume any pending deletion. Every attempt pins the exact source and replacement directories with exclusive random marker files, creation metadata and file identity when available; replaced or redirected folders are rejected. Windows may not expose a filesystem file key, so the exclusive marker is required on every platform. World datapack symlinks are not copied.
