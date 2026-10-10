@@ -215,7 +215,8 @@ public final class RerollGameTest implements FabricClientGameTest {
             context.runOnClient(m -> RerollController.start(m, true));
             context.waitForScreen(AlertScreen.class);
             check(Files.exists(failedSource.resolve("level.dat")), "Missing village caused source deletion");
-            context.runOnClient(m -> m.gui.setScreen(new TitleScreen()));
+            context.clickScreenButton("返回");
+            context.waitForScreen(TitleScreen.class);
             org.slf4j.LoggerFactory.getLogger("worldreroll").info("WORLDREROLL_VILLAGE_PASS: settings panel, safe village/player/world spawn and missing-village source preservation");
         } finally {
             if (context.computeOnClient(m -> m.level != null)) world.close();

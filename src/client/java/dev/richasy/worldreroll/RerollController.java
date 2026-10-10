@@ -113,7 +113,10 @@ public final class RerollController {
             releaseMarkers(attempt);
         }
         attempt = null;
-        client.gui.setScreen(new AlertScreen(() -> client.gui.setScreen(new TitleScreen()),
+        client.gui.setScreen(new AlertScreen(() -> {
+            if (client.level != null) client.disconnectFromWorld(net.minecraft.client.multiplayer.ClientLevel.DEFAULT_QUIT_MESSAGE);
+            client.gui.setScreen(new TitleScreen());
+        },
                 Component.translatable("worldreroll.failed.title"), Component.translatable("worldreroll.failed.body")));
     }
 
@@ -148,7 +151,6 @@ public final class RerollController {
                     .whenComplete((spawn, error) -> client.execute(() -> {
                         if (attempt != pending) return;
                         if (error != null) {
-                            client.disconnectFromWorld(net.minecraft.client.multiplayer.ClientLevel.DEFAULT_QUIT_MESSAGE);
                             failed(client, new IOException("Could not establish village spawn; source retained", error));
                         } else {
                             pending.spawn = spawn;
