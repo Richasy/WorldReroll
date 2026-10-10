@@ -40,14 +40,19 @@ public final class RerollController {
     }
 
     public static void start(Minecraft client) {
+        start(client, false);
+    }
+
+    public static void start(Minecraft client, boolean village) {
         if (!available(client)) return;
         var server = client.getSingleplayerServer();
+        if (village && !server.getWorldGenSettings().options().generateStructures()) return;
         try {
             Path sourcePath = server.getWorldPath(LevelResource.ROOT).toAbsolutePath().normalize();
             String sourceId = sourcePath.getFileName().toString();
             WorldIdentity source = WorldIdentity.capture(client.getLevelSource().getBaseDir(), sourceId);
             if (!source.directory().equals(sourcePath.toRealPath())) throw new IOException("Source world is outside saves");
-            Attempt pending = new Attempt(source, server);
+            Attempt pending = new Attempt(source, server, village);
             attempt = pending;
 
             // Vanilla waits for the integrated server to save, shut down and release its world lock.
@@ -135,6 +140,29 @@ public final class RerollController {
         if (!playable) { pending.readyTicks = 0; return; }
         String activeId = server.getWorldPath(LevelResource.ROOT).toAbsolutePath().normalize().getFileName().toString();
         if (!activeId.equals(pending.target.id())) { pending.readyTicks = 0; return; }
+        if (pending.village && !pending.locating) {
+            pending.locating = true;
+            var locatingScreen = new GenericMessageScreen(Component.translatable("worldreroll.locating"));
+            client.gui.setScreen(locatingScreen);
+            server.submit(() -> VillageSpawn.place(server.overworld(), server.getPlayerList().getPlayers().getFirst()))
+                    .whenComplete((spawn, error) -> client.execute(() -> {
+                        if (attempt != pending) return;
+                        if (error != null) {
+                            client.disconnectFromWorld(net.minecraft.client.multiplayer.ClientLevel.DEFAULT_QUIT_MESSAGE);
+                            failed(client, new IOException("Could not establish village spawn; source retained", error));
+                        } else {
+                            pending.spawn = spawn;
+                            if (client.gui.screen() == locatingScreen) client.gui.setScreen(null);
+                            LOGGER.info("Village spawn established for {} at {}", pending.target.id(), spawn);
+                        }
+                    }));
+            return;
+        }
+        if (pending.village && (pending.spawn == null || !client.level.hasChunkAt(pending.spawn)
+                || client.player.blockPosition().distSqr(pending.spawn) > 64)) {
+            pending.readyTicks = 0;
+            return;
+        }
         if (++pending.readyTicks < 20 || !pending.session.ready(activeId, true)) return;
         CompletableFuture.runAsync(() -> {
             try {
@@ -190,11 +218,15 @@ public final class RerollController {
         final WorldIdentity source;
         final net.minecraft.client.server.IntegratedServer previousServer;
         final RerollSession session = new RerollSession();
+        final boolean village;
+        boolean locating;
+        net.minecraft.core.BlockPos spawn;
         WorldIdentity target;
         int readyTicks;
-        Attempt(WorldIdentity source, net.minecraft.client.server.IntegratedServer previousServer) {
+        Attempt(WorldIdentity source, net.minecraft.client.server.IntegratedServer previousServer, boolean village) {
             this.source = source;
             this.previousServer = previousServer;
+            this.village = village;
         }
     }
 }

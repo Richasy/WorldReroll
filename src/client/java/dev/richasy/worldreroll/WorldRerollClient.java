@@ -6,7 +6,6 @@ import net.fabricmc.fabric.api.client.screen.v1.ScreenEvents;
 import net.fabricmc.fabric.api.client.screen.v1.Screens;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.Tooltip;
-import net.minecraft.client.gui.screens.ConfirmScreen;
 import net.minecraft.client.gui.screens.PauseScreen;
 import net.minecraft.network.chat.Component;
 
@@ -23,13 +22,7 @@ public final class WorldRerollClient implements ClientModInitializer {
             if (x + 52 > width) x = Math.max(0, anchor.getX() - 56);
             Button button = Button.builder(Component.translatable("worldreroll.short_button"), ignored -> {
                 if (!RerollController.available(client)) return;
-                String name = client.getSingleplayerServer().getWorldData().getLevelName();
-                client.gui.setScreen(new ConfirmScreen(accepted -> {
-                    if (accepted) RerollController.start(client);
-                    else client.gui.setScreen(screen);
-                }, Component.translatable("worldreroll.confirm.title"),
-                        Component.translatable("worldreroll.confirm.body", name),
-                        Component.translatable("worldreroll.button"), Component.translatable("gui.cancel")));
+                client.gui.setScreen(new RerollSettingsScreen(screen));
             }).bounds(x, anchor.getY(), 52, 20).build();
             button.setTooltip(Tooltip.create(Component.translatable("worldreroll.tooltip")));
             buttons.add(button);

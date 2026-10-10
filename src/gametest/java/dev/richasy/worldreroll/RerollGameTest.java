@@ -58,12 +58,22 @@ public final class RerollGameTest implements FabricClientGameTest {
                 context.setScreen(() -> new PauseScreen(true));
                 context.takeScreenshot("worldreroll-pause-entry");
                 context.clickScreenButton("Reroll");
+                context.waitForScreen(RerollSettingsScreen.class);
+                context.runOnClient(m -> check(net.fabricmc.fabric.api.client.screen.v1.Screens.getWidgets(m.gui.screen()).stream()
+                        .anyMatch(widget -> widget instanceof net.minecraft.client.gui.components.Button button
+                                && button.getMessage().getString().equals("Near a village") && !button.active),
+                        "Village selection enabled with structures disabled"));
+                context.takeScreenshot("worldreroll-settings-structures-off");
+                context.clickScreenButton("Continue");
                 context.waitForScreen(ConfirmScreen.class);
                 context.takeScreenshot("worldreroll-confirm");
+                context.clickScreenButton("Cancel");
+                context.waitForScreen(RerollSettingsScreen.class);
                 context.clickScreenButton("Cancel");
                 context.waitForScreen(PauseScreen.class);
                 check(Files.exists(source.resolve("level.dat")), "Cancel deleted source");
                 context.clickScreenButton("Reroll");
+                context.clickScreenButton("Continue");
                 context.clickScreenButton("Reroll world");
                 context.runOnClient(m -> {
                     check(!RerollController.available(m), "Duplicate reroll allowed while preparing");
@@ -132,6 +142,81 @@ public final class RerollGameTest implements FabricClientGameTest {
                     Files.deleteIfExists(other);
                 } catch (java.io.IOException error) { throw new java.io.UncheckedIOException(error); }
             }
+        } finally {
+            if (context.computeOnClient(m -> m.level != null)) world.close();
+        }
+        villageScenario(context);
+    }
+
+    private static void villageScenario(ClientGameTestContext context) {
+        var world = context.worldBuilder().adjustSettings(settings -> {
+            settings.setSeed("8611");
+            settings.setGenerateStructures(true);
+            settings.setWorldType(settings.getNormalPresetList().stream().filter(entry -> entry.preset() != null
+                    && entry.preset().is(net.minecraft.world.level.levelgen.presets.WorldPresets.NORMAL)).findFirst().orElseThrow());
+        }).create();
+        try {
+            Path source = context.computeOnClient(m -> m.getSingleplayerServer().getWorldPath(LevelResource.ROOT).toAbsolutePath().normalize());
+            context.setScreen(() -> new PauseScreen(true));
+            context.clickScreenButton("Reroll");
+            context.clickScreenButton("Near a village");
+            context.takeScreenshot("worldreroll-settings-village");
+            context.clickScreenButton("Continue");
+            context.clickScreenButton("Reroll world");
+            check(Files.exists(source.resolve("level.dat")), "Source deleted before village placement");
+            context.waitFor(m -> !Files.exists(source) && RerollController.available(m), 6000);
+            var verification = context.computeOnClient(m -> m.getSingleplayerServer().submit(() -> {
+                var level = m.getSingleplayerServer().overworld();
+                var player = m.getSingleplayerServer().getPlayerList().getPlayers().getFirst();
+                var feet = player.blockPosition();
+                var village = level.findNearestMapStructure(net.minecraft.tags.StructureTags.VILLAGE, feet, 8, false);
+                check(village != null && village.distSqr(feet) <= 100 * 100, "Player not near village");
+                check(level.getRespawnData().globalPos().pos().equals(feet), "World spawn not moved");
+                check(level.getBlockState(feet).isAir() && level.getBlockState(feet.above()).isAir()
+                        && level.getBlockState(feet.below()).isFaceSturdy(level, feet.below(), net.minecraft.core.Direction.UP),
+                        "Unsafe village spawn");
+            }));
+            context.waitFor(m -> verification.isDone(), 600);
+            verification.join();
+            context.takeScreenshot("worldreroll-village-spawn");
+            var languageReload = context.computeOnClient(m -> {
+                m.getLanguageManager().setSelected("zh_cn");
+                return m.reloadResourcePacks();
+            });
+            context.waitFor(m -> languageReload.isDone(), 400);
+            languageReload.join();
+            context.waitFor(m -> m.gui.overlay() == null, 400);
+            context.setScreen(() -> new PauseScreen(true));
+            context.runOnClient(m -> m.gui.setScreen(new RerollSettingsScreen(m.gui.screen())));
+            context.takeScreenshot("worldreroll-settings-zh-cn");
+            context.runOnClient(m -> m.gui.setScreen(null));
+
+            Path failedSource = context.computeOnClient(m -> m.getSingleplayerServer().getWorldPath(LevelResource.ROOT).toAbsolutePath().normalize());
+            try {
+                Path root = failedSource.resolve("datapacks/no-villages");
+                Files.createDirectories(root);
+                var format = SharedConstants.getCurrentVersion().packVersion(PackType.SERVER_DATA);
+                Files.writeString(root.resolve("pack.mcmeta"), "{\"pack\":{\"description\":\"No villages fixture\",\"min_format\":"
+                        + format.major() + ",\"max_format\":" + format.major() + "}}");
+                Path tag = root.resolve("data/minecraft/tags/worldgen/structure/village.json");
+                Files.createDirectories(tag.getParent());
+                Files.writeString(tag, "{\"replace\":true,\"values\":[]}");
+            } catch (java.io.IOException error) { throw new java.io.UncheckedIOException(error); }
+            var enablePack = context.computeOnClient(m -> m.getSingleplayerServer().submit(() -> {
+                var data = m.getSingleplayerServer().getWorldData();
+                var config = data.getDataConfiguration();
+                var enabled = new ArrayList<>(config.dataPacks().getEnabled());
+                enabled.add("file/no-villages");
+                data.setDataConfiguration(new WorldDataConfiguration(new DataPackConfig(enabled,
+                        config.dataPacks().getDisabled()), config.enabledFeatures()));
+            }));
+            context.waitFor(m -> enablePack.isDone(), 400);
+            enablePack.join();
+            context.runOnClient(m -> RerollController.start(m, true));
+            context.waitForScreen(AlertScreen.class);
+            check(Files.exists(failedSource.resolve("level.dat")), "Missing village caused source deletion");
+            context.runOnClient(m -> m.gui.setScreen(new TitleScreen()));
+            org.slf4j.LoggerFactory.getLogger("worldreroll").info("WORLDREROLL_VILLAGE_PASS: settings panel, safe village/player/world spawn and missing-village source preservation");
         } finally {
             if (context.computeOnClient(m -> m.level != null)) world.close();
         }

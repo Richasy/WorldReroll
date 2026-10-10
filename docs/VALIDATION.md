@@ -20,6 +20,13 @@ bootstrap commit `70c427898b6502cc5b185760626108659de803a4`.
   recreation to fail while retaining its source. The resulting registry error
   in the test log is expected.
 - Pause-menu and confirmation screenshots were visually reviewed.
+- The resumed feature adds a settings panel with separate random/village choices,
+  visible selection and an unavailable reason when structures are off. The native
+  suite exercises panel cancellation and the disabled choice, plus a normal
+  terrain replacement whose player and world spawn are on safe ground near a
+  real village. An enabled datapack removing all village tags forces a locate
+  failure and verifies source preservation. English and Chinese panel screenshots
+  are captured for visual review.
 - Complete source/resource/build-input diff reviewed; `git diff --check` passed.
 
 Actual user acceptance in the personal modded survival instance is pending.
