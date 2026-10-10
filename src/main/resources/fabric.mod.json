@@ -3,6 +3,7 @@
   "id": "worldreroll",
   "version": "${version}",
   "name": "World Reroll",
+  "icon": "assets/worldreroll/icon.png",
   "description": "Start another singleplayer world with the same settings and a new seed. Delete the previous world only after the replacement loads.",
   "authors": ["Richasy"],
   "license": "MIT",
