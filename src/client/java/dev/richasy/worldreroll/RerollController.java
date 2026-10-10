@@ -42,19 +42,27 @@ public final class RerollController {
     public static void start(Minecraft client) {
         if (!available(client)) return;
         var server = client.getSingleplayerServer();
-        LevelStorageAccess targetAccess = null;
         try {
             Path sourcePath = server.getWorldPath(LevelResource.ROOT).toAbsolutePath().normalize();
             String sourceId = sourcePath.getFileName().toString();
             WorldIdentity source = WorldIdentity.capture(client.getLevelSource().getBaseDir(), sourceId);
             if (!source.directory().equals(sourcePath.toRealPath())) throw new IOException("Source world is outside saves");
-            Attempt pending = new Attempt(source);
+            Attempt pending = new Attempt(source, server);
             attempt = pending;
 
             // Vanilla waits for the integrated server to save, shut down and release its world lock.
-            client.disconnectWithSavingScreen();
+            client.disconnectFromWorld(net.minecraft.client.multiplayer.ClientLevel.DEFAULT_QUIT_MESSAGE);
             client.setScreenAndShow(new GenericMessageScreen(Component.translatable("worldreroll.preparing")));
-            try (var sourceAccess = client.getLevelSource().validateAndCreateAccess(sourceId)) {
+        } catch (Exception error) {
+            failed(client, error);
+        }
+    }
+
+    private static void prepare(Minecraft client, Attempt pending) {
+        LevelStorageAccess targetAccess = null;
+        try {
+            client.setScreenAndShow(new GenericMessageScreen(Component.translatable("worldreroll.preparing")));
+            try (var sourceAccess = client.getLevelSource().validateAndCreateAccess(pending.source.id())) {
                 var recreated = client.createWorldOpenFlows().recreateWorldData(sourceAccess);
                 var context = recreated.getSecond();
                 context.validate();
@@ -79,30 +87,41 @@ public final class RerollController {
                 copyDataPacks(sourceAccess.getLevelPath(LevelResource.DATAPACK_DIR),
                         targetAccess.getLevelPath(LevelResource.DATAPACK_DIR));
                 pending.session.loading(targetId);
-                LOGGER.info("Starting reroll: source={}, replacement={}, seed={}", sourceId, targetId, seed);
+                LOGGER.info("Starting reroll: source={}, replacement={}, seed={}", pending.source.id(), targetId, seed);
                 client.createWorldOpenFlows().createLevelFromExistingSettings(targetAccess,
                         context.dataPackResources(), registries, settings, Optional.of(gameRules));
                 targetAccess = null; // Ownership transferred to the new integrated server.
             }
         } catch (Exception error) {
-            LOGGER.error("Could not create replacement world; source world retained", error);
             if (targetAccess != null) {
                 try { targetAccess.close(); }
                 catch (IOException closeError) { error.addSuppressed(closeError); }
             }
-            if (attempt != null) {
-                attempt.session.cancel();
-                releaseMarkers(attempt);
-            }
-            attempt = null;
-            client.gui.setScreen(new AlertScreen(() -> client.gui.setScreen(new TitleScreen()),
-                    Component.translatable("worldreroll.failed.title"), Component.translatable("worldreroll.failed.body")));
+            failed(client, error);
         }
+    }
+
+    private static void failed(Minecraft client, Exception error) {
+        LOGGER.error("Could not create replacement world; source world retained", error);
+        if (attempt != null) {
+            attempt.session.cancel();
+            releaseMarkers(attempt);
+        }
+        attempt = null;
+        client.gui.setScreen(new AlertScreen(() -> client.gui.setScreen(new TitleScreen()),
+                Component.translatable("worldreroll.failed.title"), Component.translatable("worldreroll.failed.body")));
     }
 
     public static void tick(Minecraft client) {
         Attempt pending = attempt;
-        if (pending == null || pending.session.phase() != RerollSession.Phase.LOADING) return;
+        if (pending == null) return;
+        if (pending.session.phase() == RerollSession.Phase.PREPARING) {
+            if (pending.previousServer.isShutdown() && client.getSingleplayerServer() == null && client.level == null) {
+                prepare(client, pending);
+            }
+            return;
+        }
+        if (pending.session.phase() != RerollSession.Phase.LOADING) return;
         var screen = client.gui.screen();
         if (screen instanceof TitleScreen || screen instanceof DisconnectedScreen || screen instanceof AlertScreen) {
             pending.session.cancel();
@@ -169,9 +188,13 @@ public final class RerollController {
 
     private static final class Attempt {
         final WorldIdentity source;
+        final net.minecraft.client.server.IntegratedServer previousServer;
         final RerollSession session = new RerollSession();
         WorldIdentity target;
         int readyTicks;
-        Attempt(WorldIdentity source) { this.source = source; }
+        Attempt(WorldIdentity source, net.minecraft.client.server.IntegratedServer previousServer) {
+            this.source = source;
+            this.previousServer = previousServer;
+        }
     }
 }

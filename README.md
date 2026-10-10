@@ -4,7 +4,7 @@ A small client-only **Minecraft 26.3 / Fabric / Java 25** tool for trying anothe
 
 ## Use
 
-Install the JAR alongside Fabric API in the intended instance's `mods` directory. Open the pause menu and click **↻**, next to the bottom menu button. Confirm **Reroll world** to keep the current world's name, mode, difficulty and difficulty lock, game rules, world generator, structure and bonus-chest options, enabled features and world datapacks, but use a new random seed. The confirmation describes the deletion before anything starts. English and Simplified Chinese are included.
+Install the JAR alongside Fabric API in the intended instance's `mods` directory. Open the pause menu and click **Reroll**, next to the bottom menu button. Confirm **Reroll world** to keep the current world's name, mode, difficulty and difficulty lock, game rules, world generator, structure and bonus-chest options, enabled features and world datapacks, but use a new random seed. The confirmation describes the deletion before anything starts. English and Simplified Chinese are included.
 
 The old world is saved and closed using Minecraft's normal shutdown. A fresh folder is created and world datapacks are copied. After the replacement becomes playable for 20 consecutive client ticks, the exact original save is deleted using Minecraft's own storage API. **This deletes the old terrain, buildings, inventory and progress permanently.** Only use it for worlds you intend to discard.
 

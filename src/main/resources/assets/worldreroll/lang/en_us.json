@@ -1,4 +1,5 @@
 {
+  "worldreroll.short_button": "Reroll",
   "worldreroll.button": "Reroll world",
   "worldreroll.tooltip": "Keep world settings and start with a new seed",
   "worldreroll.confirm.title": "Start another world?",

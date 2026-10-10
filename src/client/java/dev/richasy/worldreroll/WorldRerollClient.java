@@ -20,8 +20,8 @@ public final class WorldRerollClient implements ClientModInitializer {
                     .max(java.util.Comparator.comparingInt(widget -> widget.getY())).orElse(null);
             if (anchor == null) return;
             int x = anchor.getX() + anchor.getWidth() + 4;
-            if (x + 20 > width) x = Math.max(0, anchor.getX() - 24);
-            Button button = Button.builder(Component.literal("↻"), ignored -> {
+            if (x + 52 > width) x = Math.max(0, anchor.getX() - 56);
+            Button button = Button.builder(Component.translatable("worldreroll.short_button"), ignored -> {
                 if (!RerollController.available(client)) return;
                 String name = client.getSingleplayerServer().getWorldData().getLevelName();
                 client.gui.setScreen(new ConfirmScreen(accepted -> {
@@ -30,7 +30,7 @@ public final class WorldRerollClient implements ClientModInitializer {
                 }, Component.translatable("worldreroll.confirm.title"),
                         Component.translatable("worldreroll.confirm.body", name),
                         Component.translatable("worldreroll.button"), Component.translatable("gui.cancel")));
-            }).bounds(x, anchor.getY(), 20, 20).build();
+            }).bounds(x, anchor.getY(), 52, 20).build();
             button.setTooltip(Tooltip.create(Component.translatable("worldreroll.tooltip")));
             buttons.add(button);
         });

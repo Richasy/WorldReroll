@@ -28,11 +28,12 @@ import net.minecraft.server.packs.PackType;
 public final class RerollGameTest implements FabricClientGameTest {
     @Override
     public void runTest(ClientGameTestContext context) {
-        try (var world = context.worldBuilder().adjustSettings(settings -> {
+        var world = context.worldBuilder().adjustSettings(settings -> {
             settings.setSeed("8611");
             settings.setGenerateStructures(false);
             settings.setBonusChest(true);
-        }).create()) {
+        }).create();
+        try {
             Path source = context.computeOnClient(m -> m.getSingleplayerServer().getWorldPath(LevelResource.ROOT).toAbsolutePath().normalize());
             Path other = source.getParent().resolve("unrelated-reroll-test-" + java.util.UUID.randomUUID());
             try {
@@ -56,18 +57,22 @@ public final class RerollGameTest implements FabricClientGameTest {
                 long oldSeed = context.computeOnClient(m -> m.getSingleplayerServer().overworld().getSeed());
                 context.setScreen(() -> new PauseScreen(true));
                 context.takeScreenshot("worldreroll-pause-entry");
-                context.clickScreenButton("↻");
+                context.clickScreenButton("Reroll");
                 context.waitForScreen(ConfirmScreen.class);
                 context.takeScreenshot("worldreroll-confirm");
                 context.clickScreenButton("Cancel");
                 context.waitForScreen(PauseScreen.class);
                 check(Files.exists(source.resolve("level.dat")), "Cancel deleted source");
-                context.clickScreenButton("↻");
+                context.clickScreenButton("Reroll");
                 context.clickScreenButton("Reroll world");
+                context.runOnClient(m -> {
+                    check(!RerollController.available(m), "Duplicate reroll allowed while preparing");
+                    RerollController.start(m);
+                });
                 check(Files.exists(source.resolve("level.dat")), "Source deleted before replacement became playable");
                 context.waitFor(m -> m.player != null && m.gui.screen() == null && m.getSingleplayerServer() != null
                         && !m.getSingleplayerServer().getWorldPath(LevelResource.ROOT).toAbsolutePath().normalize().equals(source), 2400);
-                context.runOnClient(m -> {
+                var verification = context.computeOnClient(m -> m.getSingleplayerServer().submit(() -> {
                     var server = m.getSingleplayerServer();
                     var data = server.getWorldData();
                     check(server.overworld().getSeed() != oldSeed, "Seed was reused");
@@ -87,11 +92,26 @@ public final class RerollGameTest implements FabricClientGameTest {
                             "Old inventory carried over");
                     check(!server.overworld().getBlockState(new BlockPos(48, 90, 48)).is(Blocks.DIAMOND_BLOCK),
                             "Old terrain carried over");
-                });
+                }));
+                context.waitFor(m -> verification.isDone(), 400);
+                verification.join();
                 context.waitFor(m -> !Files.exists(source), 400);
                 check(Files.exists(other.resolve("keep.txt")), "Unrelated save deleted");
                 context.waitFor(RerollController::available, 400);
                 context.takeScreenshot("worldreroll-new-world");
+
+                context.runOnClient(m -> check(m.getSingleplayerServer().publishServer(
+                        net.minecraft.server.MinecraftServer.MultiplayerScope.LAN, 0), "Could not publish test world"));
+                context.setScreen(() -> new PauseScreen(true));
+                context.runOnClient(m -> {
+                    check(!RerollController.available(m), "Reroll allowed in LAN world");
+                    check(net.fabricmc.fabric.api.client.screen.v1.Screens.getWidgets(m.gui.screen()).stream()
+                            .noneMatch(widget -> widget instanceof net.minecraft.client.gui.components.Button button
+                                    && button.getMessage().getString().equals("Reroll")), "LAN menu has reroll button");
+                    RerollController.start(m);
+                    check(m.getSingleplayerServer().unpublishServer(), "Could not close test LAN publication");
+                    m.gui.setScreen(null);
+                });
 
                 // A malformed enabled world-generation resource must fail recreation without deleting its source.
                 Path failedSource = context.computeOnClient(m -> m.getSingleplayerServer().getWorldPath(LevelResource.ROOT).toAbsolutePath().normalize());
@@ -112,6 +132,8 @@ public final class RerollGameTest implements FabricClientGameTest {
                     Files.deleteIfExists(other);
                 } catch (java.io.IOException error) { throw new java.io.UncheckedIOException(error); }
             }
+        } finally {
+            if (context.computeOnClient(m -> m.level != null)) world.close();
         }
     }
 

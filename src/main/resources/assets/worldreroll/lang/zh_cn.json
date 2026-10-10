@@ -1,4 +1,5 @@
 {
+  "worldreroll.short_button": "重开",
   "worldreroll.button": "换个世界",
   "worldreroll.tooltip": "沿用世界设置，换一个随机种子重新开始",
   "worldreroll.confirm.title": "换一个世界？",
