@@ -26,8 +26,28 @@ import net.minecraft.world.level.storage.LevelResource;
 import net.minecraft.server.packs.PackType;
 
 public final class RerollGameTest implements FabricClientGameTest {
+    private static void capture(ClientGameTestContext context, String name) {
+        boolean hidden = context.computeOnClient(m -> m.gui.hud.isHidden());
+        try {
+            if (!hidden) context.runOnClient(m -> m.gui.hud.toggle());
+            context.waitTicks(5);
+            context.takeScreenshot(net.fabricmc.fabric.api.client.gametest.v1.screenshot.TestScreenshotOptions
+                    .of(name));
+        } finally {
+            if (!hidden) context.runOnClient(m -> m.gui.hud.toggle());
+        }
+    }
     @Override
     public void runTest(ClientGameTestContext context) {
+        context.runOnClient(m -> {
+            m.options.guiScale().set(3);
+            m.options.showAutosaveIndicator().set(false);
+            m.options.pauseOnLostFocus = false;
+            m.getWindow().setWindowed(1920, 1080);
+        });
+        context.waitFor(m -> m.getWindow().getWidth() == 1920 && m.getWindow().getHeight() == 1080, 200);
+        context.runOnClient(m -> m.resizeGui());
+        context.waitTicks(10);
         var world = context.worldBuilder().adjustSettings(settings -> {
             settings.setSeed("8611");
             settings.setGenerateStructures(false);
@@ -56,17 +76,17 @@ public final class RerollGameTest implements FabricClientGameTest {
                 });
                 long oldSeed = context.computeOnClient(m -> m.getSingleplayerServer().overworld().getSeed());
                 context.setScreen(() -> new PauseScreen(true));
-                context.takeScreenshot("worldreroll-pause-entry");
+                capture(context, "worldreroll-pause-entry");
                 context.clickScreenButton("Reroll");
                 context.waitForScreen(RerollSettingsScreen.class);
                 context.runOnClient(m -> check(net.fabricmc.fabric.api.client.screen.v1.Screens.getWidgets(m.gui.screen()).stream()
                         .anyMatch(widget -> widget instanceof net.minecraft.client.gui.components.Button button
                                 && button.getMessage().getString().equals("Near a village") && !button.active),
                         "Village selection enabled with structures disabled"));
-                context.takeScreenshot("worldreroll-settings-structures-off");
+                capture(context, "worldreroll-settings-structures-off");
                 context.clickScreenButton("Continue");
                 context.waitForScreen(ConfirmScreen.class);
-                context.takeScreenshot("worldreroll-confirm");
+                capture(context, "worldreroll-confirm");
                 context.clickScreenButton("Cancel");
                 context.waitForScreen(RerollSettingsScreen.class);
                 context.clickScreenButton("Cancel");
@@ -108,7 +128,7 @@ public final class RerollGameTest implements FabricClientGameTest {
                 context.waitFor(m -> !Files.exists(source), 400);
                 check(Files.exists(other.resolve("keep.txt")), "Unrelated save deleted");
                 context.waitFor(RerollController::available, 400);
-                context.takeScreenshot("worldreroll-new-world");
+                capture(context, "worldreroll-new-world");
 
                 context.runOnClient(m -> check(m.getSingleplayerServer().publishServer(
                         net.minecraft.server.MinecraftServer.MultiplayerScope.LAN, 0), "Could not publish test world"));
@@ -129,7 +149,7 @@ public final class RerollGameTest implements FabricClientGameTest {
                 context.runOnClient(RerollController::start);
                 context.waitForScreen(AlertScreen.class);
                 check(Files.exists(failedSource.resolve("level.dat")), "Creation failure deleted source");
-                context.takeScreenshot("worldreroll-failure-keeps-source");
+                capture(context, "worldreroll-failure-keeps-source");
                 context.runOnClient(m -> m.gui.setScreen(new TitleScreen()));
                 context.runOnClient(m -> check(!RerollController.available(m), "Reroll available without singleplayer server"));
                 org.slf4j.LoggerFactory.getLogger("worldreroll").info("WORLDREROLL_NATIVE_PASS: native pause/cancel/confirm, new seed, survival/difficulty/rules, copied active datapack, reset inventory/terrain, delayed exact-source deletion and failed recreation preservation");
@@ -160,8 +180,9 @@ public final class RerollGameTest implements FabricClientGameTest {
             context.setScreen(() -> new PauseScreen(true));
             context.clickScreenButton("Reroll");
             context.clickScreenButton("Near a village");
-            context.takeScreenshot("worldreroll-settings-village");
+            capture(context, "worldreroll-settings-village");
             context.clickScreenButton("Continue");
+            capture(context, "worldreroll-confirm-village");
             context.clickScreenButton("Reroll world");
             check(Files.exists(source.resolve("level.dat")), "Source deleted before village placement");
             context.waitFor(m -> !Files.exists(source) && RerollController.available(m), 6000);
@@ -175,10 +196,30 @@ public final class RerollGameTest implements FabricClientGameTest {
                 check(level.getBlockState(feet).isAir() && level.getBlockState(feet.above()).isAir()
                         && level.getBlockState(feet.below()).isFaceSturdy(level, feet.below(), net.minecraft.core.Direction.UP),
                         "Unsafe village spawn");
+                return village;
             }));
             context.waitFor(m -> verification.isDone(), 600);
             verification.join();
-            context.takeScreenshot("worldreroll-village-spawn");
+            capture(context, "worldreroll-village-spawn");
+            // A clearly labelled spectator overview illustrates the village, not the initial player viewpoint.
+            var village = verification.join();
+            context.runOnClient(m -> {
+                m.options.renderDistance().set(12);
+                m.options.fov().set(60);
+            });
+            var overview = context.computeOnClient(m -> m.getSingleplayerServer().submit(() -> {
+                var level = m.getSingleplayerServer().overworld();
+                var player = m.getSingleplayerServer().getPlayerList().getPlayers().getFirst();
+                int surface = level.getHeight(net.minecraft.world.level.levelgen.Heightmap.Types.WORLD_SURFACE,
+                        village.getX(), village.getZ());
+                player.setGameMode(GameType.SPECTATOR);
+                player.teleportTo(level, village.getX() + 30.5, surface + 35, village.getZ() + 30.5,
+                        java.util.Set.of(), 135, 45, true);
+            }));
+            context.waitFor(m -> overview.isDone(), 400);
+            overview.join();
+            context.waitTicks(240);
+            capture(context, "worldreroll-village-overview");
             var languageReload = context.computeOnClient(m -> {
                 m.getLanguageManager().setSelected("zh_cn");
                 return m.reloadResourcePacks();
@@ -188,7 +229,10 @@ public final class RerollGameTest implements FabricClientGameTest {
             context.waitFor(m -> m.gui.overlay() == null, 400);
             context.setScreen(() -> new PauseScreen(true));
             context.runOnClient(m -> m.gui.setScreen(new RerollSettingsScreen(m.gui.screen())));
-            context.takeScreenshot("worldreroll-settings-zh-cn");
+            capture(context, "worldreroll-settings-zh-cn");
+            context.clickScreenButton("继续");
+            capture(context, "worldreroll-confirm-zh-cn");
+            context.clickScreenButton("取消");
             context.runOnClient(m -> m.gui.setScreen(null));
 
             Path failedSource = context.computeOnClient(m -> m.getSingleplayerServer().getWorldPath(LevelResource.ROOT).toAbsolutePath().normalize());

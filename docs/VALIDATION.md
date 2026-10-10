@@ -22,6 +22,12 @@ bootstrap commit `70c427898b6502cc5b185760626108659de803a4`.
   recreation to fail while retaining its source. The resulting registry error
   in the test log is expected.
 - Pause-menu and confirmation screenshots were visually reviewed.
+- `gradlew.bat runClientGameTest --no-daemon` passed again after documentation
+  capture changes. The actual client window was resized to 1920 x 1080 before
+  GUI initialization; renderer-only screenshot resizing is not used. All five
+  published screenshots were individually reviewed for centered layout, complete
+  English/Chinese text, hidden HUD and autosave indicator, and clear composition.
+  The village illustration is explicitly captioned as a spectator overview.
 - The resumed feature adds a settings panel with separate random/village choices,
   visible selection and an unavailable reason when structures are off. The native
   suite exercises panel cancellation and the disabled choice, plus a normal
@@ -31,6 +37,8 @@ bootstrap commit `70c427898b6502cc5b185760626108659de803a4`.
   are captured for visual review.
 - Complete source/resource/build-input diff reviewed; `git diff --check` passed.
 
-Actual user acceptance in the personal modded survival instance is pending.
+The user explicitly authorized PR integration, public repository visibility and
+the first GitHub Release. Full acceptance of third-party compatibility in the
+personal modded survival instance remains outside the executed test evidence.
 Third-party world-loading overrides, arbitrary per-save mod state and multiplayer
 server connections have not been exercised. No personal world was used in tests.

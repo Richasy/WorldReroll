@@ -1,39 +1,89 @@
+<p align="center"><img src="src/main/resources/assets/worldreroll/icon.png" width="96" alt="World Reroll icon"></p>
+
 # World Reroll
 
-A small client-only **Minecraft 26.3 / Fabric / Java 25** tool for trying another singleplayer survival start without repeatedly entering world settings.
+[English](README.md) · [简体中文](README.zh-CN.md)
+
+Try another singleplayer start without deleting a save and configuring a new world by hand. World Reroll keeps your world settings, chooses a fresh random seed, and can place your new start near a village.
+
+**Minecraft 26.3 · Fabric · Java 25 · Singleplayer**
+
+> **Rerolling permanently deletes the previous world's terrain, buildings, inventory and progress after the replacement is ready. Use it only for worlds you intend to discard.**
+
+## Choose your next start
+
+![English reroll settings panel](docs/screenshots/settings-en.png)
+
+- **Random spawn** — explore the new seed from its natural spawn point.
+- **Near a village** — locate an existing village and move both the player and world spawn to nearby solid ground with clear space above it. This moves the spawn after generation; it does not filter seeds for a natural village spawn.
+- **Settings stay with you** — keep mode, difficulty and difficulty lock, game rules, generator, structure and bonus-chest options, enabled features, and world datapacks.
+- **Readable save names** — new folders use names such as `HelloWorld-reroll-1`. Occupied names are skipped; existing saves are not renamed.
+
+Village mode is unavailable when structure generation is disabled. Searching has a bounded range and may take time. If no village or suitable ground is found, the original world is retained. Your last selection is remembered during the current game session.
+
+![A village in a generated replacement world](docs/screenshots/village-overview.png)
+
+*A real village in a replacement world, shown from a spectator overview. This is not the initial player viewpoint.*
+
+## Install
+
+| Requirement | Supported version |
+| --- | --- |
+| Minecraft Java Edition | 26.3 |
+| Mod loader | Fabric Loader 0.19.5 or newer |
+| Dependency | Fabric API; validated with 0.161.0+26.3 |
+| Java | 25 or newer |
+| Environment | Singleplayer client; unavailable on multiplayer and open-to-LAN worlds |
+
+1. Install Fabric and a matching Fabric API version in your launcher instance.
+2. Download `worldreroll-0.1.0+26.3.jar` from [GitHub Releases](https://github.com/Richasy/WorldReroll/releases).
+3. Put the JAR in that instance's `mods` directory and restart Minecraft.
+
+Lithergy is not required. Only Minecraft 26.3 has been validated; do not install this build on another Minecraft version.
 
 ## Use
 
-Install the JAR alongside Fabric API in the intended instance's `mods` directory. Open the pause menu and click **Reroll**, next to the bottom menu button. The settings panel offers **Random spawn** and **Near a village**. Select a preference, continue and confirm **Reroll world** to keep the current world's name, mode, difficulty and difficulty lock, game rules, world generator, structure and bonus-chest options, enabled features and world datapacks, but use a new random seed. The confirmation describes the deletion before anything starts. English and Simplified Chinese are included.
+1. Enter a singleplayer world and press **Esc**.
+2. Click **Reroll**, next to **Save and Quit to Title**.
+3. Choose a spawn preference in the panel, then click **Continue**.
+4. Read the deletion notice and confirm **Reroll world**, or cancel to keep playing.
 
-Village mode uses a bounded vanilla structure search around the initial spawn, then moves both the player and the world spawn to safe terrain within 64 blocks on each horizontal axis of the village's located position. It does not filter seeds for a natural village spawn. Locating and moving run on the integrated server; the old world is kept until the client receives the new position and its chunk, then becomes playable. No structures or terrain are added. If no village or suitable terrain is found, the attempt fails and keeps the source. Village mode is disabled when structure generation is off. The last preference is remembered for this client session.
+![English confirmation before rerolling](docs/screenshots/confirm-en.png)
 
-The old world is saved and closed using Minecraft's normal shutdown. A fresh folder is created and world datapacks are copied. After the replacement becomes playable for 20 consecutive client ticks, the exact original save is deleted using Minecraft's own storage API. **This deletes the old terrain, buildings, inventory and progress permanently.** Only use it for worlds you intend to discard.
+The original world is saved and closed normally. A separate replacement folder is created with a new seed and copied world datapacks. Deletion begins only after the replacement is playable for 20 consecutive client ticks. In village mode, the new position and its chunk must also reach the client first.
 
-There is no entry on multiplayer servers or in a world open to LAN. There are no new dimensions, gameplay items, commands, automatic resets or Mixins. Lithergy is not a dependency.
+## What stays, and what resets?
 
-New save directories use readable names such as `HelloWorld-reroll-1`. Existing
-names are skipped by reserving a new directory exclusively and incrementing the
-number. Unsafe filename characters are replaced and very long names are shortened;
-the displayed world name remains unchanged. Existing save directories are not renamed.
+| Kept | Reset |
+| --- | --- |
+| World display name, mode, difficulty and lock | Terrain and buildings |
+| All saved game rules, including changes made in-game | Inventory, player state and progression |
+| Generator, structure and bonus-chest options | Seed |
+| Enabled features and world datapacks | Arbitrary third-party per-save state |
 
-## Failure behavior
+The new world starts fresh even when rules such as Keep Inventory are enabled. Compatibility with mods that replace world loading or depend on custom per-save data requires separate validation.
 
-Creating or loading the replacement never authorizes deleting the source. Cancellation or creation failure keeps the old world. A client restart does not resume any pending deletion. Every attempt pins the exact source and replacement directories with exclusive random marker files, creation metadata and file identity when available; replaced or redirected folders are rejected. Windows may not expose a filesystem file key, so the exclusive marker is required on every platform. World datapack symlinks are not copied.
+## Failure handling
 
-Deletion errors are logged with the two world IDs and reported in game. The replacement remains usable; if deletion has started, cleanup can be partial. Failed replacement folders are left for diagnosis. Crash-interrupted attempts can leave harmless `.worldreroll-*` marker files inside their saves; they never schedule deletion on their own.
+- Cancelling before reroll, creation failure, or failed village placement retains the source world.
+- Restarting Minecraft never resumes a pending deletion.
+- Only the pinned source save is a deletion target; a unique marker and filesystem metadata verify its identity. Linked or redirected directories are rejected.
+- Cleanup errors are reported in-game and logged. Once deletion has begun, an error can leave partial cleanup; the replacement remains usable.
+- Failed replacements remain in the saves directory for diagnosis. A crash can leave harmless `.worldreroll-*` marker files; these never schedule deletion by themselves.
 
-The tool retains world-generation configuration and datapacks, not arbitrary third-party per-save state. A new world starts with new player state and progression. Compatibility with mods that replace the normal world-loading flow requires separate validation.
+Report problems through [GitHub Issues](https://github.com/Richasy/WorldReroll/issues), including the game/mod versions, reproduction steps and relevant log excerpt.
 
 ## Development
 
-Versions are pinned in `gradle.properties`, and the checked-in Gradle wrapper has its distribution checksum. Set `JAVA_HOME` to JDK 25 for the current shell only, then run:
+Use JDK 25 and the checked-in wrapper:
 
 ```powershell
 .\gradlew.bat build --no-daemon
 .\gradlew.bat runClientGameTest --no-daemon
 ```
 
-Native client tests use disposable worlds under `build/run/clientGameTest`; manual development uses `run/client`. Never run the deletion scenarios against personal saves. Unit tests cover attempt transitions, cancellation, repeated activation, path traversal, active-world exclusion and changed source identity. The native scenario drives the pause/confirm/cancel interface, preserved settings and an active copied datapack, new seed and new player/terrain state, deletion only after entering the replacement, an unrelated save's survival and failed recreation preserving its source.
+Seven unit tests cover attempt transitions and save identity/naming. Native client tests exercise the actual panel, cancellation, preserved settings and datapacks, delayed deletion, LAN gating, village placement and failure preservation. Tests use disposable saves under `build/run/clientGameTest`; manual development uses `run/client`. Never point deletion tests at personal saves. See [validation evidence](docs/VALIDATION.md).
 
-Inspired by the workflow of [Start Reroll](https://github.com/euruseve/StartReroll); this is an independent implementation using Minecraft 26.3's public world and storage APIs.
+## License and credits
+
+[MIT](LICENSE). Inspired by the workflow of [Start Reroll](https://github.com/euruseve/StartReroll), with an independent implementation using Minecraft 26.3 APIs. Code, translations and documentation were developed with AI assistance; the icon was generated through Azure ImageGen. Documentation screenshots are captured in Minecraft, not generated images.
