@@ -1,0 +1,23 @@
+{
+  "worldreroll.settings.title": "Reroll settings",
+  "worldreroll.settings.description": "Keep this world's settings and game rules. Choose where your new start should be.",
+  "worldreroll.settings.random": "Random spawn",
+  "worldreroll.settings.random_hint": "Explore a new seed from its natural spawn point.",
+  "worldreroll.settings.village": "Near a village",
+  "worldreroll.settings.village_hint": "Start on safe ground near a village. Searching may take a while.",
+  "worldreroll.settings.structures_off": "Unavailable: structure generation is turned off.",
+  "worldreroll.settings.warning": "The old world is deleted only after the new start is ready. Failure keeps it.",
+  "worldreroll.settings.continue": "Continue",
+  "worldreroll.confirm.village_body": "Keep the settings of %s, use a new seed and start near a village. Its terrain, builds, inventory and progress will be deleted only after the new village spawn is ready. This cannot be undone.",
+  "worldreroll.locating": "Finding a village and preparing safe ground…",
+  "worldreroll.short_button": "Reroll",
+  "worldreroll.button": "Reroll world",
+  "worldreroll.tooltip": "Keep world settings and start with a new seed",
+  "worldreroll.confirm.title": "Start another world?",
+  "worldreroll.confirm.body": "Keep the settings of %s and use a new seed. Its terrain, builds, inventory and progress will be deleted only after you enter the new world. This cannot be undone.",
+  "worldreroll.preparing": "Preparing another world…",
+  "worldreroll.failed.title": "Could not reroll world",
+  "worldreroll.failed.body": "The previous world was kept. See the game log for details.",
+  "worldreroll.delete_failed": "New world loaded, but cleanup of the previous world did not finish. See the game log.",
+  "worldreroll.complete": "New world ready. Previous world deleted."
+}

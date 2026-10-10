@@ -1,0 +1,8 @@
+{
+  "schemaVersion": 1,
+  "id": "worldreroll_test",
+  "version": "1.0.0",
+  "name": "World Reroll isolated game tests",
+  "environment": "client",
+  "entrypoints": {"fabric-client-gametest": ["dev.richasy.worldreroll.RerollGameTest"]}
+}
