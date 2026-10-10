@@ -1,0 +1,11 @@
+{
+  "worldreroll.button": "Reroll world",
+  "worldreroll.tooltip": "Keep world settings and start with a new seed",
+  "worldreroll.confirm.title": "Start another world?",
+  "worldreroll.confirm.body": "Keep the settings of %s and use a new seed. Its terrain, builds, inventory and progress will be deleted only after you enter the new world. This cannot be undone.",
+  "worldreroll.preparing": "Preparing another world…",
+  "worldreroll.failed.title": "Could not reroll world",
+  "worldreroll.failed.body": "The previous world was kept. See the game log for details.",
+  "worldreroll.delete_failed": "New world loaded, but cleanup of the previous world did not finish. See the game log.",
+  "worldreroll.complete": "New world ready. Previous world deleted."
+}
