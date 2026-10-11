@@ -1,0 +1,7 @@
+{
+  "required": true,
+  "package": "dev.richasy.worldreroll.mixin",
+  "compatibilityLevel": "JAVA_25",
+  "client": ["WorldTabMixin", "CreateWorldScreenMixin"],
+  "injectors": {"defaultRequire": 1}
+}

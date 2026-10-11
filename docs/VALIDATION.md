@@ -1,5 +1,34 @@
 # Validation evidence
 
+## Village creation and bonus chest update (2026-10-11)
+
+Base: `ab3f31182b80f7116d67d24b81b02729ca6a5ccd`; owned branch:
+`codex/village-world-creation`. The user approved these cases before new test
+code was written. `gradlew.bat build --no-daemon` passed with seven unit tests.
+`gradlew.bat runClientGameTest --no-daemon` passed after final fixture cleanup
+fixes, exercising both native scenarios.
+
+- The actual World tab switch toggles the preference, defaults off on a fresh
+  screen, disables with structures off, and does not arm on cancellation.
+- Direct creation with a fixed seed preserves survival, hard difficulty and
+  bonus-chest settings; both player and world spawn move to safe village ground.
+- Bonus-chest on/off cases verify exactly one/zero unopened bonus loot tables
+  within eight horizontal blocks of final spawn. Opening the enabled chest
+  produces actual vanilla loot and its lid has clear air above it.
+- Reroll village placement also verifies the enabled bonus chest, while earlier
+  settings/datapack, cancellation, LAN, exact delayed deletion and failure
+  preservation checks continue to pass.
+- A copied enabled datapack removing village tags drives direct creation failure:
+  the notice appears, the new world remains playable, and the source save remains.
+- Native English/Chinese creation screenshots at 1920 x 1080 were visually
+  inspected for layout, readable controls and absent HUD.
+
+Fabric screen events cannot insert a switch into vanilla's private World-tab
+layout or observe its private creation callback. Two client Mixins and a narrow
+access widener provide those specific hooks. No saved preference, later-load
+relocation, save deletion or seed reroll is introduced into initial creation.
+Integration of this update awaits actual user review and explicit approval.
+
 Validated on 2026-10-10 against Minecraft 26.3, Fabric Loader 0.19.5,
 Fabric API 0.161.0+26.3 and Java 25. The implementation worktree is
 `WorldReroll-implementation`, branch `codex/world-reroll`, based on the clean

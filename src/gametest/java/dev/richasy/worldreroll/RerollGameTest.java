@@ -172,6 +172,7 @@ public final class RerollGameTest implements FabricClientGameTest {
         var world = context.worldBuilder().adjustSettings(settings -> {
             settings.setSeed("8611");
             settings.setGenerateStructures(true);
+            settings.setBonusChest(true);
             settings.setWorldType(settings.getNormalPresetList().stream().filter(entry -> entry.preset() != null
                     && entry.preset().is(net.minecraft.world.level.levelgen.presets.WorldPresets.NORMAL)).findFirst().orElseThrow());
         }).create();
@@ -196,6 +197,7 @@ public final class RerollGameTest implements FabricClientGameTest {
                 check(level.getBlockState(feet).isAir() && level.getBlockState(feet.above()).isAir()
                         && level.getBlockState(feet.below()).isFaceSturdy(level, feet.below(), net.minecraft.core.Direction.UP),
                         "Unsafe village spawn");
+                CreationGameTest.assertBonusChest(level, feet, true);
                 return village;
             }));
             context.waitFor(m -> verification.isDone(), 600);
@@ -259,8 +261,12 @@ public final class RerollGameTest implements FabricClientGameTest {
             context.runOnClient(m -> RerollController.start(m, true));
             context.waitForScreen(AlertScreen.class);
             check(Files.exists(failedSource.resolve("level.dat")), "Missing village caused source deletion");
+            var closingServer = context.computeOnClient(m -> m.getSingleplayerServer());
             context.clickScreenButton("返回");
             context.waitForScreen(TitleScreen.class);
+            context.waitFor(m -> closingServer.isShutdown() && m.level == null && m.getSingleplayerServer() == null, 400);
+            context.waitTicks(2);
+            context.setScreen(TitleScreen::new);
             org.slf4j.LoggerFactory.getLogger("worldreroll").info("WORLDREROLL_VILLAGE_PASS: settings panel, safe village/player/world spawn and missing-village source preservation");
         } finally {
             if (context.computeOnClient(m -> m.level != null)) world.close();

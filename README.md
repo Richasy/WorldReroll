@@ -21,6 +21,16 @@ Try another singleplayer start without deleting a save and configuring a new wor
 
 Village mode is unavailable when structure generation is disabled. Searching has a bounded range and may take time. If no village or suitable ground is found, the original world is retained. Your last selection is remembered during the current game session.
 
+When Bonus Chest is enabled, its unopened vanilla loot table and seed move to an accessible chest within eight blocks of the final village spawn. Ordinary village chests are not moved. If vanilla could not place its original bonus chest, one is generated at the final spawn instead.
+
+## Start a new world near a village
+
+In **Create New World → World**, enable **Spawn near a village**, alongside **Generate Structures** and **Bonus Chest**. The option starts off for each new creation screen and requires structure generation. Your chosen seed and other creation settings stay unchanged; only the initial player/world spawn and enabled bonus chest are relocated.
+
+![Village-spawn option in the English world-creation screen](docs/screenshots/create-world-en.png)
+
+This initial-creation flow never deletes another save. Failed village placement shows a notice and keeps the newly created world so you can continue playing. Selecting this option does not remember a deletion request or change an existing world's spawn on later loads.
+
 ![A village in a generated replacement world](docs/screenshots/village-overview.png)
 
 *A real village in a replacement world, shown from a spectator overview. This is not the initial player viewpoint.*

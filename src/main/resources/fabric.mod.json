@@ -8,6 +8,8 @@
   "authors": ["Richasy"],
   "license": "MIT",
   "environment": "client",
+  "mixins": ["worldreroll.client.mixins.json"],
+  "accessWidener": "worldreroll.accesswidener",
   "entrypoints": {"client": ["dev.richasy.worldreroll.WorldRerollClient"]},
   "depends": {
     "fabricloader": ">=0.19.5",

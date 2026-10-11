@@ -35,7 +35,7 @@ public final class RerollController {
 
     public static boolean available(Minecraft client) {
         var server = client.getSingleplayerServer();
-        return attempt == null && client.player != null && server != null && !server.isPublished();
+        return attempt == null && !CreationSpawn.busy() && client.player != null && server != null && !server.isPublished();
     }
 
     public static void start(Minecraft client) {
