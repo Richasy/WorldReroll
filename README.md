@@ -21,7 +21,7 @@ Try another singleplayer start without deleting a save and configuring a new wor
 
 Village mode is unavailable when structure generation is disabled. Searching has a bounded range and may take time. If no village or suitable ground is found, the original world is retained. Your last selection is remembered during the current game session.
 
-When Bonus Chest is enabled, its unopened vanilla loot table and seed move to an accessible chest within eight blocks of the final village spawn. Ordinary village chests are not moved. If vanilla could not place its original bonus chest, one is generated at the final spawn instead.
+When Bonus Chest is enabled, its unopened vanilla loot table and seed move to an accessible chest near the final village spawn. Ordinary village chests are not moved. If vanilla could not place its original bonus chest, one is generated at the final spawn instead.
 
 ## Start a new world near a village
 

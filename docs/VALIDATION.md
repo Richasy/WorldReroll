@@ -13,7 +13,7 @@ fixes, exercising both native scenarios.
 - Direct creation with a fixed seed preserves survival, hard difficulty and
   bonus-chest settings; both player and world spawn move to safe village ground.
 - Bonus-chest on/off cases verify exactly one/zero unopened bonus loot tables
-  within eight horizontal blocks of final spawn. Opening the enabled chest
+  within eight blocks along each horizontal axis of final spawn. Opening the enabled chest
   produces actual vanilla loot and its lid has clear air above it.
 - Reroll village placement also verifies the enabled bonus chest, while earlier
   settings/datapack, cancellation, LAN, exact delayed deletion and failure
