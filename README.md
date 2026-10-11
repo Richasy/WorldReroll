@@ -46,7 +46,7 @@ This initial-creation flow never deletes another save. Failed village placement 
 | Environment | Singleplayer client; unavailable on multiplayer and open-to-LAN worlds |
 
 1. Install Fabric and a matching Fabric API version in your launcher instance.
-2. Download `worldreroll-0.1.0+26.3.jar` from [GitHub Releases](https://github.com/Richasy/WorldReroll/releases).
+2. Download `worldreroll-0.2.0+26.3.jar` from [GitHub Releases](https://github.com/Richasy/WorldReroll/releases).
 3. Put the JAR in that instance's `mods` directory and restart Minecraft.
 
 Lithergy is not required. Only Minecraft 26.3 has been validated; do not install this build on another Minecraft version.

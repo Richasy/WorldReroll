@@ -46,7 +46,7 @@
 | 运行环境 | 单人客户端；多人服务器和已对局域网开放的世界不可使用 |
 
 1. 在启动器实例中安装 Fabric 和对应版本的 Fabric API。
-2. 从 [GitHub Releases](https://github.com/Richasy/WorldReroll/releases) 下载 `worldreroll-0.1.0+26.3.jar`。
+2. 从 [GitHub Releases](https://github.com/Richasy/WorldReroll/releases) 下载 `worldreroll-0.2.0+26.3.jar`。
 3. 将 JAR 放入该实例的 `mods` 目录，然后重启 Minecraft。
 
 不需要安装 Lithergy。目前仅验证了 Minecraft 26.3，请勿将此版本装到其他 Minecraft 版本中。

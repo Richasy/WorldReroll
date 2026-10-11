@@ -27,7 +27,7 @@ Fabric screen events cannot insert a switch into vanilla's private World-tab
 layout or observe its private creation callback. Two client Mixins and a narrow
 access widener provide those specific hooks. No saved preference, later-load
 relocation, save deletion or seed reroll is introduced into initial creation.
-Integration of this update awaits actual user review and explicit approval.
+This update was reviewed and squash-merged as PR #2 on 2026-10-11.
 
 Validated on 2026-10-10 against Minecraft 26.3, Fabric Loader 0.19.5,
 Fabric API 0.161.0+26.3 and Java 25. The implementation worktree is
