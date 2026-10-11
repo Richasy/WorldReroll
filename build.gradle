@@ -3,6 +3,7 @@ plugins {
 }
 
 loom {
+    accessWidenerPath = file('src/main/resources/worldreroll.accesswidener')
     splitEnvironmentSourceSets()
     mods {
         worldreroll {

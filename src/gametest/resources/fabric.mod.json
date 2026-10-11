@@ -4,5 +4,10 @@
   "version": "1.0.0",
   "name": "World Reroll isolated game tests",
   "environment": "client",
-  "entrypoints": {"fabric-client-gametest": ["dev.richasy.worldreroll.RerollGameTest"]}
+  "entrypoints": {
+    "fabric-client-gametest": [
+      "dev.richasy.worldreroll.CreationGameTest",
+      "dev.richasy.worldreroll.RerollGameTest"
+    ]
+  }
 }

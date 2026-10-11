@@ -28,5 +28,6 @@ public final class WorldRerollClient implements ClientModInitializer {
             buttons.add(button);
         });
         ClientTickEvents.END_CLIENT_TICK.register(RerollController::tick);
+        ClientTickEvents.END_CLIENT_TICK.register(CreationSpawn::tick);
     }
 }

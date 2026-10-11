@@ -19,5 +19,9 @@
   "worldreroll.failed.title": "无法重开世界",
   "worldreroll.failed.body": "旧世界已保留。详情请查看游戏日志。",
   "worldreroll.delete_failed": "新世界已载入，但旧世界清理未完成。详情请查看游戏日志。",
-  "worldreroll.complete": "新世界已就绪，旧世界已删除。"
+  "worldreroll.complete": "新世界已就绪，旧世界已删除。",
+  "worldreroll.creation.village": "在村庄附近出生",
+  "worldreroll.creation.village_hint": "将玩家、世界出生点及已启用的奖励箱移到村庄附近。需要开启结构生成；定位失败时保留自然出生点。",
+  "worldreroll.creation.failed_title": "无法在村庄附近出生",
+  "worldreroll.creation.failed_body": "未能准备村庄出生点，新世界会保留在自然出生点。没有删除任何已有存档。"
 }

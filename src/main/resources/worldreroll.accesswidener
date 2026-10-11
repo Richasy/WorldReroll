@@ -1,0 +1,4 @@
+accessWidener v2 official
+accessible class net/minecraft/client/gui/screens/worldselection/SwitchGrid
+accessible class net/minecraft/client/gui/screens/worldselection/SwitchGrid$Builder
+accessible class net/minecraft/client/gui/screens/worldselection/SwitchGrid$SwitchBuilder

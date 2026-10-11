@@ -19,5 +19,9 @@
   "worldreroll.failed.title": "Could not reroll world",
   "worldreroll.failed.body": "The previous world was kept. See the game log for details.",
   "worldreroll.delete_failed": "New world loaded, but cleanup of the previous world did not finish. See the game log.",
-  "worldreroll.complete": "New world ready. Previous world deleted."
+  "worldreroll.complete": "New world ready. Previous world deleted.",
+  "worldreroll.creation.village": "Spawn near a village",
+  "worldreroll.creation.village_hint": "Move the player, world spawn and enabled bonus chest near a village. Requires structures. If locating fails, keep the natural spawn.",
+  "worldreroll.creation.failed_title": "Village spawn unavailable",
+  "worldreroll.creation.failed_body": "No village start could be prepared. This new world is kept at its natural spawn. No existing saves were deleted."
 }
